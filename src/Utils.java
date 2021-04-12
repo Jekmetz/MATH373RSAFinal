@@ -14,6 +14,7 @@ public class Utils {
 	 */
 	public static BigInteger generatePrime(int bitLength)
 	{
+		// Return BigIntger with bitLength bitLength, certainty 1-2^12 and a random generator with the system time as seed
 		return new BigInteger(bitLength, 12, new Random(System.currentTimeMillis()));
 	}
 	
