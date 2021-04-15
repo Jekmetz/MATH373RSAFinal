@@ -4,6 +4,8 @@
  */
 
 import java.io.PrintStream;
+import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
 
@@ -11,7 +13,8 @@ public class Main {
 	//Init program-global vars
 	private static HashMap<String, Person> people = new HashMap<String, Person>();
 	private static PubKey pubKey = new PubKey();
-
+	private static String prompt = "> "; // Prompt for user input
+	
 	public static void main(String[] args) {
 		// Init Vars
 		String cmd = null;		// used to store cmd typed by user
@@ -23,7 +26,7 @@ public class Main {
 		printHelp(out);
 		while(!exit)	// while we don't want to exit...
 		{
-			out.printf("> ");
+			out.printf(prompt);
 			cmd = scan.nextLine();
 			
 			switch(cmd.toLowerCase())
@@ -108,7 +111,7 @@ public class Main {
 	
 	/**
 	 * Command handler for send
-	 * @author 
+	 * @author Jay Kmetz
 	 * @param scan - Input stream scanner
 	 * @param out - Output stream to write to
 	 */
@@ -140,9 +143,84 @@ public class Main {
 	 */
 	private static void viewKeys(Scanner scan, PrintStream out)
 	{
-		/* TODO: Implement
-		 * List out all private keys
-		 */
-		notYetImplemented();
+		if(people.size() == 0) // If there are no people in our list...
+		{
+			out.printf("There are no people! Use 'genkey' to generate one!\n\n");
+			return;
+		}
+		
+		listPeople(out, false);
+	}
+	
+	// Helpers
+	
+	/**
+	 * List all of the people in the people
+	 * @author Jay Kmetz
+	 * @return list of all the people corresponding to the indecies laid out
+	 */
+	private static ArrayList<String> listPeople(PrintStream out, boolean index)
+	{
+		// Init vars
+		ArrayList<String> peopleList = new ArrayList<String>(people.size());
+		int maxILen = (int)Math.log10(people.size() - 1) + 1; 	// Max index length
+		int maxPLen = "Person".length();						// Max Person Length
+		
+		// Sort each person by name and add them to the peopleList
+		for(String person : people.keySet())
+		{
+			if(person.length() > maxPLen) // If we have a person with the longest name...
+				maxPLen = person.length();
+			
+			peopleList.add(person);
+		}
+		
+		peopleList.sort((a,b)->a.compareTo(b));	// sort alphabetically
+
+		// Add headers if not indexing
+		if(!index)
+		{
+			String header = String.format("%-" + maxPLen + "s -> %s", "Person", "(priv-key, pub-key)");
+			out.printf("%s\n%s\n", header, "-".repeat(header.length()));
+		}
+		
+		// List each person with index beside them
+		Person p = null;
+		for(int i = 0; i < peopleList.size(); i++)
+			if(index)	// If we want to index it...
+				out.printf("[%0" + maxILen + "d] %s\n", i, peopleList.get(i));
+			else // If we do not want to index it...
+			{
+				p = people.get(peopleList.get(i));
+				out.printf("%-" + maxPLen + "s -> (%s, %s)\n", peopleList.get(i), p.getPriv(), p.getPub());
+			}
+		out.println();
+
+		return peopleList;
+	}
+	
+	private static ArrayList<String> listPeople(PrintStream out) { return listPeople(out, true); }
+
+	private static int getInteger(Scanner scan, PrintStream out)
+	{
+		boolean isInt = false;
+		String supposedInt = null;
+		int ret = 0;
+		
+		while(!isInt)	// while it is not an int...
+		{
+			out.printf(prompt);				// Prompt the user for an int
+			supposedInt = scan.nextLine();	// Scan their input
+			
+			try {
+				ret = Integer.parseInt(supposedInt);	// try parsing it as an int
+				isInt = true;							// If it worked, exit the loop
+			} catch (NumberFormatException e)			// If it wasn't an int...
+			{
+				out.printf("Please input a valid number!\n\n");	//Ask for one.
+			}
+		}
+		
+		return ret;
 	}
 }
