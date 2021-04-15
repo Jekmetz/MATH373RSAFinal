@@ -32,4 +32,22 @@ public class Utils {
 		//TODO: implement
 		return a.modPow(n, z);	// Please for the love of God don't keep this
 	}
+	
+	/**
+	 * Converts an array of bytes to string
+	 * @author Jay Kmetz
+	 * @param bytes - array of bytes to turn into a string
+	 * @return string from bytes
+	 */
+	public static String bytesToString(byte[] bytes)
+	{
+		// returns null if bytes passed is null;
+		if(bytes == null) return null;
+		
+		StringBuilder sb = new StringBuilder();
+		for(byte b : bytes)
+			sb.append((b >= 32 && b <= 126) ? ((char)b) : '-');	//If it is within the range of printable characters...
+
+		return sb.toString();
+	}
 }

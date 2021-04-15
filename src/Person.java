@@ -6,25 +6,27 @@ public class Person {
 	private PubKey pubKey = null;
 	private String name = "";
 	private HashMap<String, BigInteger> pubKeyMap;
-	private BigInteger priv;
+	private BigInteger priv, pub;
 	
 	public Person(PubKey pubKey, String name) { 
 		this.pubKey = pubKey;
 		this.pubKeyMap = new HashMap<String, BigInteger>();
 		this.name = name;
-		this.generatePriv(); 
+		this.generatePair(); 
 	}
 	
-	public Person(PubKey pubKey, String name, BigInteger priv)
+	public Person(PubKey pubKey, String name, BigInteger priv, BigInteger pub)
 	{
 		this.pubKey = pubKey;
 		this.pubKeyMap = new HashMap<String, BigInteger>();
 		this.name = name;
 		this.priv = priv;
+		this.pub = pub;
 	}
 	
 	// Getters
 	public BigInteger getPriv()					{ return priv; }
+	public BigInteger getPub()					{ return pub; }
 	public String     getName()					{ return name; }
 	public BigInteger getEncKey(String name) 	{ return pubKeyMap.get(name); }
 	
@@ -36,7 +38,7 @@ public class Person {
 	 * @param plaintext - Plaintext to encrypt
 	 * @returns Encrypted String as a BigInteger
 	 */
-	public BigInteger encrypt(String name, String plaintext)
+	public byte[] encrypt(String name, String plaintext)
 	{
 		// TODO: Implement encrypt
 		return null;
@@ -49,7 +51,7 @@ public class Person {
 	 * @param ciphertext - Ciphertext to decrypt
 	 * @return Decrypted ciphertext
 	 */
-	public String decrypt(String name, BigInteger ciphertext)
+	public String decrypt(String name, byte[] ciphertext)
 	{
 		// TOOD: Implement decrypt
 		return null;
@@ -58,23 +60,26 @@ public class Person {
 	/**
 	 * Adds an encryption/decryption key to this person to the pubKeyMap
 	 * @author Jay Kmetz
-	 * @param name - Name of the person to add to pubKeyMap
-	 * @param personalPubKey - Public key associated with name given
+	 * @param person - Person to add to trusted list
 	 */
-	public void addTrustedPerson(String name, BigInteger personalPubKey)
+	public void addTrustedPerson(Person p)
 	{
+		// generate encryption key between them with <other's pub key>^<priv key> (mod <universal pub key n>)
 		pubKeyMap.put(
-				name, 
-				Utils.fastPow(personalPubKey, this.priv, this.pubKey.getN())
+				p.getName(), 
+				Utils.fastPow(p.getPub(), this.priv, this.pubKey.getN())
 		);
 	}
 	
 	// Private Class Methods
 	/**
-	 * Generates priv key
+	 * Generates priv and pub keys
 	 * @author Jay Kmetz
 	 */
-	private void generatePriv() { this.priv = Utils.generatePrime(32); }
+	private void generatePair() { 
+		this.priv = Utils.generatePrime(32); 
+		this.pub = Utils.fastPow(this.pubKey.getE(), this.priv, this.pubKey.getN());
+	}
 	
 	// Overrides from Object
 	@Override

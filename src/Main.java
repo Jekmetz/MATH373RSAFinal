@@ -23,6 +23,11 @@ public class Main {
 		
 		printAuthorInfo(out);
 		printHelp(out);
+		
+		/*TODO: REMOVE BELOW PEOPLE... TESTING PURPOSES ONLY*/
+		people.put("Alice", new Person(pubKey, "Alice"));
+		people.put("Bob", new Person(pubKey, "Bob"));
+		/*************/
 		while(!exit)	// while we don't want to exit...
 		{
 			out.printf(prompt);
@@ -124,20 +129,71 @@ public class Main {
 	{
 		/* TODO: Implement send
 		 * This is the meat and potatoes
-		 * Display public Key
-		 * Prompt user for message sender
-		 * Prompt user for message reciever
-		 * Add sender as trusted person for reciever
-		 * Add reciever as trusted person for sender
-		 * Prompt user for message
-		 * Display "Encrypting '<message>' with <sender encryption key>..."
+		 * Display public Key ------------------------------------------------------
+		 * Prompt user for message sender ------------------------------------------
+		 * Prompt user for message reciever ----------------------------------------
+		 * Add sender as trusted person for reciever -------------------------------
+		 * Add reciever as trusted person for sender -------------------------------
+		 * Prompt user for message -------------------------------------------------
+		 * Display "Encrypting '<message>' with <sender encryption key>..." -------
 		 * Display Encryption information (sender encryption key, enc_message)
 		 * Display "Sending from <Sender>..."
 		 * Display "<Reciever> is recieving <enc_message>"
-		 * Display "<Reciever> is encrypting with <reciever enc_key>"
+		 * Display "<Reciever> is decrypting with <reciever enc_key>"
 		 * Display "Decrypted message: <decrypted message>"
 		 */
-		notYetImplemented();
+		// People size validation
+		if(people.size() < 2)
+		{
+			out.printf("Please create at least 2 people using genkey!\n\n");
+			return;
+		}
+		
+		// Init vars
+		ArrayList<String> peopleList = null;
+		Person sender, receiver;	// sender and reciever indecies
+		String msg = null;			// msg to be messed with
+		byte[] ciphertext = null;
+		String decrypted = null;
+		
+		// Display public Key
+		out.printf("Public Key (n,e):\n%s\n\n", pubKey);
+		
+		// Prompt user for message sender
+		peopleList = listPeople(out);
+		out.printf("Please input the number corresponding to the person sending the message:\n");
+		sender = people.get(peopleList.get(getInteger(scan, out, 0, peopleList.size() - 1)));
+		out.printf("%s is the sender\n\n", sender.getName());
+		
+		// Prompt user for message reciever
+		listPeople(out, peopleList);
+		out.printf("Please input the number corresponding to the recieving person\n");
+		receiver = people.get(peopleList.get(getInteger(scan, out, 0, peopleList.size() - 1)));
+		out.printf("%s is the receiver\n\n", receiver.getName());
+		
+		// Add sender as trusted person for reciever
+		sender.addTrustedPerson(receiver);
+		
+		// Add reciever as trusted person for sender
+		receiver.addTrustedPerson(sender);
+		
+		// Prompt user for message
+		out.printf("Please input your message to be encrypted: \n");
+		msg = scan.nextLine();
+		
+		// Encrypting
+		out.printf("Encrypting '%s' with %s's encryption key: %s\n", msg, sender.getName(), sender.getEncKey(receiver.getName()));
+		ciphertext = sender.encrypt(receiver.getName(), msg);
+		
+		out.printf("Encrypted Message:\n%s\n\n", Utils.bytesToString(ciphertext));
+		
+		out.printf("Sending from %s\n", sender.getName());
+		out.printf("%s is recieving message\n\n", receiver.getName());
+		
+		//Decrypting
+		out.printf("Decrypting message with %s's decryption key: %s\n", receiver.getName(), receiver.getEncKey(sender.getName()));
+		decrypted = receiver.decrypt(sender.getName(), ciphertext);
+		out.printf("Decrypted message:\n%s\n\n", decrypted);
 	}
 	
 	/**
@@ -162,32 +218,38 @@ public class Main {
 	// Helpers
 	
 	/**
-	 * List all of the people in the people
+	 * Lists all of the generated people
 	 * @author Jay Kmetz
-	 * @return list of all the people corresponding to the indecies laid out
+	 * @param out - PrintStream to print to
+	 * @param lst - already calculated list (if applicable)
+	 * @param index - Should index? (indexes if true, displays keys if false)
+	 * @return List of people in alphabetical order from people map
 	 */
-	private static ArrayList<String> listPeople(PrintStream out, boolean index)
+	private static ArrayList<String> listPeople(PrintStream out, ArrayList<String> lst, boolean index)
 	{
 		// Init vars
-		ArrayList<String> peopleList = new ArrayList<String>(people.size());
+		ArrayList<String> peopleList = lst != null ? lst : new ArrayList<String>(people.size());
 		int maxILen = (int)Math.log10(people.size() - 1) + 1; 	// Max index length
 		int maxPLen = "Person".length();						// Max Person Length
 		
-		// Sort each person by name and add them to the peopleList
-		for(String person : people.keySet())
+		if(lst == null) // If they did not provide a list...
 		{
-			if(person.length() > maxPLen) // If we have a person with the longest name...
-				maxPLen = person.length();
+			// Sort each person by name and add them to the peopleList
+			for(String person : people.keySet())
+			{
+				if(person.length() > maxPLen) // If we have a person with the longest name...
+					maxPLen = person.length();
+				
+				peopleList.add(person);
+			}
 			
-			peopleList.add(person);
+			peopleList.sort((a,b)->a.compareTo(b));	// sort alphabetically
 		}
 		
-		peopleList.sort((a,b)->a.compareTo(b));	// sort alphabetically
-
 		// Add headers if not indexing
 		if(!index)
 		{
-			String header = String.format("%-" + maxPLen + "s -> %s", "Person", "Private Key");
+			String header = String.format("%-" + maxPLen + "s -> %s", "Person", "(priv-key, pub-key)");
 			out.printf("%s\n%s\n", header, "-".repeat(header.length()));
 		}
 		
@@ -199,16 +261,27 @@ public class Main {
 			else // If we do not want to index it...
 			{
 				p = people.get(peopleList.get(i));
-				out.printf("%-" + maxPLen + "s -> (%s, %s)\n", peopleList.get(i), p.getPriv());
+				out.printf("%-" + maxPLen + "s -> (%s, %s)\n", peopleList.get(i), p.getPriv(), p.getPub());
 			}
 		out.println();
 
 		return peopleList;
 	}
 	
-	private static ArrayList<String> listPeople(PrintStream out) { return listPeople(out, true); }
-
-	private static int getInteger(Scanner scan, PrintStream out)
+	private static ArrayList<String> listPeople(PrintStream out) { return listPeople(out, null, true); }
+	private static void listPeople(PrintStream out, ArrayList<String> lst) { listPeople(out, lst, true); }
+	private static ArrayList<String> listPeople(PrintStream out, boolean index) { return listPeople(out, null, index); }
+	
+	/**
+	 * Gets an integer from the user between lower and upper
+	 * @author Jay Kmetz
+	 * @param scan - Scanner to scan from
+	 * @param out - PrintStream to print to
+	 * @param lower - lower bound for the integer (inclusive)
+	 * @param upper - upper bound for the integer (inclusive)
+	 * @return integer from user
+	 */
+	private static int getInteger(Scanner scan, PrintStream out, int lower, int upper)
 	{
 		boolean isInt = false;
 		String supposedInt = null;
@@ -221,10 +294,14 @@ public class Main {
 			
 			try {
 				ret = Integer.parseInt(supposedInt);	// try parsing it as an int
+				if(ret < lower || ret > upper) throw new IndexOutOfBoundsException();
 				isInt = true;							// If it worked, exit the loop
 			} catch (NumberFormatException e)			// If it wasn't an int...
 			{
 				out.printf("Please input a valid number!\n\n");	//Ask for one.
+			} catch (IndexOutOfBoundsException e)
+			{
+				out.printf("Please input a valid number between %d and %d\n\n",lower,upper);
 			}
 		}
 		

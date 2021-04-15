@@ -35,8 +35,8 @@ public class PubKey {
 		 */
 		
 		// Init Vars
-		BigInteger p = BigInteger.valueOf(7);	// Randomly generate large prime
-		BigInteger q = BigInteger.valueOf(11);	// Randomly generate large prime
+		BigInteger p = Utils.generatePrime(256);	// Randomly generate large prime
+		BigInteger q = BigInteger.valueOf(256);	// Randomly generate large prime
 		
 		this.n = p.multiply(q);			// Mutate
 		this.e = BigInteger.valueOf(3);	// Mutate
