@@ -7,27 +7,24 @@ public class Person {
 	private String name = "";
 	private HashMap<String, BigInteger> pubKeyMap;
 	private BigInteger priv;
-	private BigInteger pub;
 	
 	public Person(PubKey pubKey, String name) { 
 		this.pubKey = pubKey;
 		this.pubKeyMap = new HashMap<String, BigInteger>();
 		this.name = name;
-		this.generatePair(); 
+		this.generatePriv(); 
 	}
 	
-	public Person(PubKey pubKey, String name, BigInteger priv, BigInteger pub)
+	public Person(PubKey pubKey, String name, BigInteger priv)
 	{
 		this.pubKey = pubKey;
 		this.pubKeyMap = new HashMap<String, BigInteger>();
 		this.name = name;
 		this.priv = priv;
-		this.pub = pub;
 	}
 	
 	// Getters
 	public BigInteger getPriv()					{ return priv; }
-	public BigInteger getPub()  				{ return pub; }
 	public String     getName()					{ return name; }
 	public BigInteger getEncKey(String name) 	{ return pubKeyMap.get(name); }
 	
@@ -74,23 +71,15 @@ public class Person {
 	
 	// Private Class Methods
 	/**
-	 * Generates priv and pub keys
-	 * @author 
+	 * Generates priv key
+	 * @author Jay Kmetz
 	 */
-	private void generatePair()
-	{
-		/* TODO: Implement generatePair
-		 * Choose a large random prime for priv
-		 */
-		
-		this.priv = Utils.generatePrime(32); // Generate large random prime
-		this.pub = Utils.fastPow(pubKey.getE(), priv, pubKey.getN());
-	}
+	private void generatePriv() { this.priv = Utils.generatePrime(32); }
 	
 	// Overrides from Object
 	@Override
 	public String toString()
 	{
-		return String.format("(%d)", pub);
+		return String.format("(%d)", this.priv);
 	}
 }

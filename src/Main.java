@@ -4,7 +4,6 @@
  */
 
 import java.io.PrintStream;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
@@ -12,8 +11,8 @@ import java.util.Scanner;
 public class Main {
 	//Init program-global vars
 	private static HashMap<String, Person> people = new HashMap<String, Person>();
-	private static PubKey pubKey = new PubKey();
-	private static String prompt = "> "; // Prompt for user input
+	private static PubKey pubKey = new PubKey();	// Static public key for all (en|de)cryption
+	private final static String prompt = "> "; 		// Prompt for user input
 	
 	public static void main(String[] args) {
 		// Init Vars
@@ -56,6 +55,11 @@ public class Main {
 				viewKeys(scan, out);
 				break;
 				
+			case "p":
+			case "viewpubkey":
+				viewPubKey(scan, out);
+				break;
+				
 			default:
 				out.println("Command not recognized");
 				break;
@@ -79,11 +83,12 @@ public class Main {
 	{
 		out.printf(
 		"----------COMMANDS----------\n" +
-		"(h)elp     - print this message\n" +
-		"(g)enkey   - Generate private key\n" +
-		"(v)iewkeys - View private keys\n" +
-		"(s)end     - Send message\n" +
-		"(e)xit     - Exit program\n\n"
+		"(h)elp       - print this message\n" +
+		"(g)enkey     - Generate private key\n" +
+		"(v)iewkeys   - View private keys\n" +
+		"view(p)ubkey - View the public key\n" +
+		"(s)end       - Send message\n" +
+		"(e)xit       - Exit program\n\n"
 		);
 	}
 	
@@ -152,6 +157,8 @@ public class Main {
 		listPeople(out, false);
 	}
 	
+	private static void viewPubKey(Scanner scan, PrintStream out) { out.printf("%s\n\n", pubKey); }
+	
 	// Helpers
 	
 	/**
@@ -180,7 +187,7 @@ public class Main {
 		// Add headers if not indexing
 		if(!index)
 		{
-			String header = String.format("%-" + maxPLen + "s -> %s", "Person", "(priv-key, pub-key)");
+			String header = String.format("%-" + maxPLen + "s -> %s", "Person", "Private Key");
 			out.printf("%s\n%s\n", header, "-".repeat(header.length()));
 		}
 		
@@ -192,7 +199,7 @@ public class Main {
 			else // If we do not want to index it...
 			{
 				p = people.get(peopleList.get(i));
-				out.printf("%-" + maxPLen + "s -> (%s, %s)\n", peopleList.get(i), p.getPriv(), p.getPub());
+				out.printf("%-" + maxPLen + "s -> (%s, %s)\n", peopleList.get(i), p.getPriv());
 			}
 		out.println();
 
