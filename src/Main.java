@@ -11,8 +11,11 @@ import java.util.Scanner;
 public class Main {
 	//Init program-global vars
 	private static HashMap<String, Person> people = new HashMap<String, Person>();
-	private static PubKey pubKey = new PubKey();	// Static public key for all (en|de)cryption
+	private static PubKey pubKey = null;	// Static public key for all (en|de)cryption
 	private final static String prompt = "> "; 		// Prompt for user input
+	
+	// global vars
+	public final static int BLOCK_SIZE = 512;
 	
 	public static void main(String[] args) {
 		// Init Vars
@@ -20,6 +23,9 @@ public class Main {
 		boolean exit = false;	// used for exit control
 		Scanner scan = new Scanner(System.in);	// Scanner for user input
 		PrintStream out = System.out;
+		
+		out.println("Generating Public Key...");
+		pubKey = new PubKey();
 		
 		printAuthorInfo(out);
 		printHelp(out);

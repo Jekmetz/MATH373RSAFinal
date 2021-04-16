@@ -77,7 +77,7 @@ public class Person {
 	 * @author Jay Kmetz
 	 */
 	private void generatePair() { 
-		this.priv = Utils.generatePrime(32); 
+		this.priv = Utils.generatePrime(Main.BLOCK_SIZE/8); 
 		this.pub = Utils.fastPow(this.pubKey.getE(), this.priv, this.pubKey.getN());
 	}
 	

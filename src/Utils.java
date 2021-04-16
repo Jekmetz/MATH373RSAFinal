@@ -12,10 +12,10 @@ public class Utils {
 	 * 
 	 * @return large prime
 	 */
-	public static BigInteger generatePrime(int bitLength)
+	public static BigInteger generatePrime(int byteLength)
 	{
 		// Return BigIntger with bitLength bitLength, certainty 1-2^12 and a random generator with the system time as seed
-		return new BigInteger(bitLength, 12, new Random(System.currentTimeMillis()));
+		return new BigInteger(8*byteLength, 12, new Random(System.currentTimeMillis()));
 	}
 	
 	/**
