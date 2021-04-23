@@ -11,11 +11,7 @@ import java.util.Scanner;
 public class Main {
 	//Init program-global vars
 	private static HashMap<String, Person> people = new HashMap<String, Person>();
-	private static PubKey pubKey = null;	// Static public key for all (en|de)cryption
 	private final static String prompt = "> "; 		// Prompt for user input
-	
-	// global vars
-	public final static int BLOCK_SIZE = 512;
 	
 	public static void main(String[] args) {
 		// Init Vars
@@ -24,15 +20,12 @@ public class Main {
 		Scanner scan = new Scanner(System.in);	// Scanner for user input
 		PrintStream out = System.out;
 		
-		out.println("Generating Public Key...");
-		pubKey = new PubKey();
-		
 		printAuthorInfo(out);
 		printHelp(out);
 		
 		/*TODO: REMOVE BELOW PEOPLE... TESTING PURPOSES ONLY*/
-		people.put("Alice", new Person(pubKey, "Alice"));
-		people.put("Bob", new Person(pubKey, "Bob"));
+		people.put("Alice", new Person("Alice"));
+		people.put("Bob", new Person("Bob"));
 		/*************/
 		while(!exit)	// while we don't want to exit...
 		{
@@ -66,11 +59,6 @@ public class Main {
 				viewKeys(scan, out);
 				break;
 				
-			case "p":
-			case "viewpubkey":
-				viewPubKey(scan, out);
-				break;
-				
 			default:
 				out.println("Command not recognized");
 				break;
@@ -93,13 +81,12 @@ public class Main {
 	private static void printHelp(PrintStream out) 
 	{
 		out.printf(
-		"----------COMMANDS----------\n" +
-		"(h)elp       - print this message\n" +
-		"(g)enkey     - Generate private key\n" +
-		"(v)iewkeys   - View private keys\n" +
-		"view(p)ubkey - View the public key\n" +
-		"(s)end       - Send message\n" +
-		"(e)xit       - Exit program\n\n"
+			"----------COMMANDS----------\n" +
+			"(h)elp       - print this message\n" +
+			"(g)enkey     - Generate public key for person\n" +
+			"(v)iewkeys   - View public keys\n" +
+			"(s)end       - Send message\n" +
+			"(e)xit       - Exit program\n\n"
 		);
 	}
 	
@@ -135,18 +122,16 @@ public class Main {
 	{
 		/* TODO: Implement send
 		 * This is the meat and potatoes
-		 * Display public Key ------------------------------------------------------
-		 * Prompt user for message sender ------------------------------------------
-		 * Prompt user for message reciever ----------------------------------------
-		 * Add sender as trusted person for reciever -------------------------------
-		 * Add reciever as trusted person for sender -------------------------------
-		 * Prompt user for message -------------------------------------------------
-		 * Display "Encrypting '<message>' with <sender encryption key>..." -------
-		 * Display Encryption information (sender encryption key, enc_message)
-		 * Display "Sending from <Sender>..."
-		 * Display "<Reciever> is recieving <enc_message>"
-		 * Display "<Reciever> is decrypting with <reciever enc_key>"
-		 * Display "Decrypted message: <decrypted message>"
+		 * Prompt user for message sender -----------------------------------------
+		 * Prompt user for message reciever ---------------------------------------
+		 * Show public key for reciever -------------------------------------------
+		 * Prompt user for message ------------------------------------------------
+		 * Display "Encrypting '<message>' with <reciever public key>..." ---------
+		 * Display Encryption information (enc_message) ---------------------------
+		 * Display "Sending from <Sender>..." -------------------------------------
+		 * Display "<Reciever> is recieving <enc_message>" ------------------------
+		 * Display "<Reciever> is decrypting with their own key information" ------
+		 * Display "Decrypted message: <decrypted message>" -----------------------
 		 */
 		// People size validation
 		if(people.size() < 2)
@@ -162,9 +147,6 @@ public class Main {
 		byte[] ciphertext = null;
 		String decrypted = null;
 		
-		// Display public Key
-		out.printf("Public Key (n,e):\n%s\n\n", pubKey);
-		
 		// Prompt user for message sender
 		peopleList = listPeople(out);
 		out.printf("Please input the number corresponding to the person sending the message:\n");
@@ -177,28 +159,30 @@ public class Main {
 		receiver = people.get(peopleList.get(getInteger(scan, out, 0, peopleList.size() - 1)));
 		out.printf("%s is the receiver\n\n", receiver.getName());
 		
-		// Add sender as trusted person for reciever
-		sender.addTrustedPerson(receiver);
-		
-		// Add reciever as trusted person for sender
-		receiver.addTrustedPerson(sender);
+		// Show Public Key for receiver
+		out.printf(
+			"Public key for %s\n" +
+			"%s\n\n",
+			receiver.getName(),
+			receiver.getPubKey()
+		);
 		
 		// Prompt user for message
 		out.printf("Please input your message to be encrypted: \n");
 		msg = scan.nextLine();
 		
 		// Encrypting
-		out.printf("Encrypting '%s' with %s's encryption key: %s\n", msg, sender.getName(), sender.getEncKey(receiver.getName()));
-		ciphertext = sender.encrypt(receiver.getName(), msg);
+		out.printf("Encrypting '%s' with %s's public key: %s\n", msg, sender.getName(), sender.getPubKey());
+		ciphertext = sender.encrypt(receiver.getPubKey(), msg);
 		
-		out.printf("Encrypted Message:\n%s\n\n", Utils.bytesToString(ciphertext));
+		out.printf("Encrypted Message (in hex):\n%s\n\n", Utils.bytesToHexString(ciphertext));
 		
 		out.printf("Sending from %s\n", sender.getName());
 		out.printf("%s is recieving message\n\n", receiver.getName());
 		
 		//Decrypting
-		out.printf("Decrypting message with %s's decryption key: %s\n", receiver.getName(), receiver.getEncKey(sender.getName()));
-		decrypted = receiver.decrypt(sender.getName(), ciphertext);
+		out.printf("Decrypting message with %s's public key and their secret d\n", receiver.getName());
+		decrypted = receiver.decrypt(ciphertext);
 		out.printf("Decrypted message:\n%s\n\n", decrypted);
 	}
 	
@@ -218,8 +202,6 @@ public class Main {
 		
 		listPeople(out, false);
 	}
-	
-	private static void viewPubKey(Scanner scan, PrintStream out) { out.printf("%s\n\n", pubKey); }
 	
 	// Helpers
 	
@@ -267,7 +249,7 @@ public class Main {
 			else // If we do not want to index it...
 			{
 				p = people.get(peopleList.get(i));
-				out.printf("%-" + maxPLen + "s -> (%s, %s)\n", peopleList.get(i), p.getPriv(), p.getPub());
+				out.printf("%-" + maxPLen + "s -> (N, e) = (%s, %s)\n", peopleList.get(i), p.getPubKey().getN(), p.getPubKey().getE());
 			}
 		out.println();
 
