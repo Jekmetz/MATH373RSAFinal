@@ -15,7 +15,7 @@ public class PrivKey {
 	// Class Methods
 	/**
 	 * Generates random public key
-	 * @author 
+	 * @author Drey Newland
 	 */
 	private void generateKey()
 	{
@@ -35,12 +35,12 @@ public class PrivKey {
 		 * this.d = e^(-1) (mod ord)
 		 */
 		
+		
 		// Init Vars
 		BigInteger p=null, q=null, n=null;
 		Random r = new Random();
 		int firstByteLength = 0;
 		int tol = (int)(Utils.BLOCK_SIZE * .1);
-		System.out.println("hello");
 		while(n == null || n.bitLength()/8 != Utils.BLOCK_SIZE)	//While we still need to generate...
 		{
 			firstByteLength = Utils.getBoundedRand(r, Utils.BLOCK_SIZE/2 - tol, Utils.BLOCK_SIZE/2 + tol);
@@ -54,9 +54,11 @@ public class PrivKey {
 		
 		BigInteger ord = pMinus1.multiply(qMinus1).divide(pMinus1.gcd(qMinus1));
 		
-		// Throw e into a loop until the above conditions are met so we don't get an error.
-		//TODO: CHANGE THAT 2 to a 64
-		BigInteger e = BigInteger.probablePrime(Utils.getBoundedRand(new Random(), 2, ord.bitLength()-1), new Random());
+		BigInteger e;
+		do {
+			e = BigInteger.probablePrime(Utils.getBoundedRand(new Random(), 2, ord.bitLength()-1), new Random());
+		} while (!(e.gcd(ord).equals(BigInteger.ONE)));
+	
 
 		this.pubKey = new PubKey(n,e);
 		this.d = e.modInverse(ord);
@@ -65,6 +67,6 @@ public class PrivKey {
 	@Override
 	public String toString()
 	{
-		return String.format("(N, e, d) = (%d,%d)", this.pubKey.getN(), this.pubKey.getE(), this.d);
+		return String.format("(N, e, d) = (%d, %d, %d)", this.pubKey.getN(), this.pubKey.getE(), this.d);
 	}
 }

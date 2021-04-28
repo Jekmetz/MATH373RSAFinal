@@ -136,10 +136,7 @@ public class Utils {
 		
 		// If we need to pad it...
 		byte[] padded = new byte[size];
-		
-		System.out.println();
-		System.out.println(size);
-		System.out.println(bytes.length);
+
 		// Copy the bytes into the end of the new initialized padded array
 		System.arraycopy(bytes, 0, padded, size-bytes.length, bytes.length);
 		
@@ -171,4 +168,18 @@ public class Utils {
 		
 		return out;
 	}
+	
+	//remove trailing zeros
+	public static byte[] removeTrailingZeros(byte[] bytes, byte numberToDelete)
+	{
+		
+		int messageSize = BLOCK_SIZE - numberToDelete;
+		byte[] out = null;
+		out = new byte[messageSize];
+		
+		System.arraycopy(bytes, 0, out, 0, messageSize);
+	
+		return out;
+	}
+	
 }

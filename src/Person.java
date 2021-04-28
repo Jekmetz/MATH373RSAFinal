@@ -29,7 +29,7 @@ public class Person {
 	// Public Class Methods
 	/**
 	 * Encrypts some plaintext for the name specified
-	 * @author 
+	 * @author Jay Kmetz
 	 * @param key - Public key of the person you are encrypting for
 	 * @param plaintext - Plaintext to encrypt
 	 * @returns Encrypted String as a BigInteger
@@ -40,7 +40,7 @@ public class Person {
 		BigInteger n = key.getN();
 		BigInteger e = key.getE();
 		int blockSize = Utils.BLOCK_SIZE;
-		int outputLen = blockSize * (int)(plaintext.length()/(blockSize) + 1);
+		int outputLen = blockSize * (plaintext.length()/(blockSize) + 1);
 		int chonkNum = 0;
 		byte lPad, rPad;
 		Random rand = new Random();
@@ -49,13 +49,15 @@ public class Person {
 		byte[] buffer = null, chonk = null;	// used for each chunk of data	
 
 		try {
-			// Generate left padding and right padding randomly
+			
+			chonkNum = 0;
+			
 			lPad = (byte)(Utils.getBoundedRand(rand, Utils.PAD_LOWER_BOUND, Utils.PAD_UPPER_BOUND) & 0xFF);
 			rPad = (byte)(Utils.getBoundedRand(rand, Utils.PAD_LOWER_BOUND, Utils.PAD_UPPER_BOUND) & 0xFF);
-			chonkNum = 0;
 			
 			while((buffer = plainTextBytes.readNBytes(blockSize - lPad - rPad)).length > 0)
 			{
+				
 				chonk = Utils.padBytes(blockSize, buffer, lPad, rPad);
 				
 				// Perform m^e (mod n) calculation
@@ -68,6 +70,11 @@ public class Person {
 				chonk = Utils.fillZerosLeft(blockSize, chonk);
 				
 				ciphertext.write(chonk, chonkNum * blockSize, blockSize);
+				
+				// Generate left padding and right padding randomly
+				lPad = (byte)(Utils.getBoundedRand(rand, Utils.PAD_LOWER_BOUND, Utils.PAD_UPPER_BOUND) & 0xFF);
+				rPad = (byte)(Utils.getBoundedRand(rand, Utils.PAD_LOWER_BOUND, Utils.PAD_UPPER_BOUND) & 0xFF);
+				chonkNum++;
 			}
 		} catch (IOException ex)
 		{
@@ -85,9 +92,50 @@ public class Person {
 	 * @return Decrypted ciphertext
 	 */
 	public String decrypt(byte[] ciphertext)
-	{
-		// TOOD: Implement decrypt
-		return null;
+	{	
+		// TODO: Implement decrypt
+		BigInteger n = this.pubKey.getN();
+		BigInteger d = this.privKey.getD();
+		int blockSize = Utils.BLOCK_SIZE;
+		int outputLen = blockSize * (ciphertext.length/(blockSize) + 1);
+		int totalMessageSize = 0;
+		ByteArrayInputStream ciphertextStream = new ByteArrayInputStream(ciphertext);
+		byte numberToBeRemoved = 0;
+		byte[] buffer = null;
+		byte[] chonk = null;
+		ByteArrayOutputStream plaintext = new ByteArrayOutputStream(outputLen);
+		
+		int thisMessageSize = 0;
+		
+		try {
+		
+			//for(int i = 0; i < numChonks; i++)
+				
+			while((buffer = ciphertextStream.readNBytes(Utils.BLOCK_SIZE)).length > 0)
+			{
+				numberToBeRemoved = buffer[1]; 
+				buffer[0] = 0;
+				buffer[1] = 0;
+				Utils.removeLeadingZeros(buffer);
+				Utils.removeTrailingZeros(buffer, numberToBeRemoved);
+				totalMessageSize += buffer.length;
+				thisMessageSize = buffer.length;
+				
+				
+				//m=c^d(mod N)
+				chonk = (new BigInteger(1, buffer)).modPow(d, n).toByteArray();
+				plaintext.write(chonk, totalMessageSize, blockSize);
+			}
+		} catch (IOException ex) {
+			
+			System.out.printf("Error when decrypting '%s'. This should never happen! Check Person.encrypt()\n");
+			return null;
+		}
+		
+		
+		//6,13,0,0,0,0,message,0,0,0,0,0,0,0,0,0,0,0,0,0
+		
+		return plaintext.toString();
 	}
 	
 	// Overrides from Object
