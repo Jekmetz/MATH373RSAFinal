@@ -87,7 +87,7 @@ public class Utils {
 	 */
 	public static int getBoundedRand(Random rand, int low, int high)
 	{
-		return rand.nextInt(high - low) + low;
+		return rand.nextInt(high - low + 1) + low;
 	}
 	
 	/**

@@ -41,7 +41,6 @@ public class Person {
 		BigInteger e = key.getE();
 		int blockSize = Utils.BLOCK_SIZE;
 		int outputLen = blockSize * (plaintext.length()/(blockSize) + 1);
-		int chonkNum = 0;
 		byte lPad, rPad;
 		Random rand = new Random();
 		ByteArrayInputStream plainTextBytes = new ByteArrayInputStream(plaintext.getBytes());
@@ -49,9 +48,6 @@ public class Person {
 		byte[] buffer = null, chonk = null;	// used for each chunk of data	
 
 		try {
-			
-			chonkNum = 0;
-			
 			lPad = (byte)(Utils.getBoundedRand(rand, Utils.PAD_LOWER_BOUND, Utils.PAD_UPPER_BOUND) & 0xFF);
 			rPad = (byte)(Utils.getBoundedRand(rand, Utils.PAD_LOWER_BOUND, Utils.PAD_UPPER_BOUND) & 0xFF);
 			
@@ -68,13 +64,11 @@ public class Person {
 					
 				// Pad it with zeros if necessary
 				chonk = Utils.fillZerosLeft(blockSize, chonk);
-				
-				ciphertext.write(chonk, chonkNum * blockSize, blockSize);
+				ciphertext.write(chonk, 0, blockSize);
 				
 				// Generate left padding and right padding randomly
 				lPad = (byte)(Utils.getBoundedRand(rand, Utils.PAD_LOWER_BOUND, Utils.PAD_UPPER_BOUND) & 0xFF);
 				rPad = (byte)(Utils.getBoundedRand(rand, Utils.PAD_LOWER_BOUND, Utils.PAD_UPPER_BOUND) & 0xFF);
-				chonkNum++;
 			}
 		} catch (IOException ex)
 		{
@@ -98,14 +92,11 @@ public class Person {
 		BigInteger d = this.privKey.getD();
 		int blockSize = Utils.BLOCK_SIZE;
 		int outputLen = blockSize * (ciphertext.length/(blockSize) + 1);
-		int totalMessageSize = 0;
 		ByteArrayInputStream ciphertextStream = new ByteArrayInputStream(ciphertext);
 		byte numberToBeRemoved = 0;
 		byte[] buffer = null;
 		byte[] chonk = null;
 		ByteArrayOutputStream plaintext = new ByteArrayOutputStream(outputLen);
-		
-		int thisMessageSize = 0;
 		
 		try {
 		
@@ -114,17 +105,14 @@ public class Person {
 			while((buffer = ciphertextStream.readNBytes(Utils.BLOCK_SIZE)).length > 0)
 			{
 				numberToBeRemoved = buffer[1]; 
-				buffer[0] = 0;
-				buffer[1] = 0;
-				Utils.removeLeadingZeros(buffer);
-				Utils.removeTrailingZeros(buffer, numberToBeRemoved);
-				totalMessageSize += buffer.length;
-				thisMessageSize = buffer.length;
-				
+				buffer[0] = 0x00;
+				buffer[1] = 0x00;
+				buffer = Utils.removeLeadingZeros(buffer);
+				buffer = Utils.removeTrailingZeros(buffer, numberToBeRemoved);
 				
 				//m=c^d(mod N)
 				chonk = (new BigInteger(1, buffer)).modPow(d, n).toByteArray();
-				plaintext.write(chonk, totalMessageSize, blockSize);
+				plaintext.write(chonk, 0, blockSize);
 			}
 		} catch (IOException ex) {
 			
@@ -135,7 +123,7 @@ public class Person {
 		
 		//6,13,0,0,0,0,message,0,0,0,0,0,0,0,0,0,0,0,0,0
 		
-		return plaintext.toString();
+		return Utils.bytesToString(plaintext.toByteArray());
 	}
 	
 	// Overrides from Object
