@@ -170,10 +170,10 @@ public class Utils {
 	}
 	
 	//remove trailing zeros
-	public static byte[] removeTrailingZeros(byte[] bytes, byte numberToDelete)
+	public static byte[] removeTrailingZeros(byte[] bytes, int numberToDelete)
 	{
 		
-		int messageSize = BLOCK_SIZE - numberToDelete;
+		int messageSize = bytes.length - numberToDelete;
 		byte[] out = null;
 		out = new byte[messageSize];
 		

@@ -19,6 +19,7 @@ public class Person {
 	public Person(PrivKey privKey, String name)
 	{
 		this.privKey = privKey;
+		this.pubKey = privKey.getPubKey();
 		this.name = name;
 	}
 	
@@ -93,7 +94,7 @@ public class Person {
 		int blockSize = Utils.BLOCK_SIZE;
 		int outputLen = blockSize * (ciphertext.length/(blockSize) + 1);
 		ByteArrayInputStream ciphertextStream = new ByteArrayInputStream(ciphertext);
-		byte numberToBeRemoved = 0;
+		int numberToBeRemoved = 0;
 		byte[] buffer = null;
 		byte[] chonk = null;
 		ByteArrayOutputStream plaintext = new ByteArrayOutputStream(outputLen);
@@ -104,15 +105,15 @@ public class Person {
 				
 			while((buffer = ciphertextStream.readNBytes(Utils.BLOCK_SIZE)).length > 0)
 			{
-				numberToBeRemoved = buffer[1]; 
-				buffer[0] = 0x00;
-				buffer[1] = 0x00;
-				buffer = Utils.removeLeadingZeros(buffer);
-				buffer = Utils.removeTrailingZeros(buffer, numberToBeRemoved);
-				
 				//m=c^d(mod N)
 				chonk = (new BigInteger(1, buffer)).modPow(d, n).toByteArray();
-				plaintext.write(chonk, 0, blockSize);
+				numberToBeRemoved = (0xFF & chonk[1]); 
+				chonk[0] = 0x00;
+				chonk[1] = 0x00;
+				chonk = Utils.removeLeadingZeros(chonk);
+				chonk = Utils.removeTrailingZeros(chonk, numberToBeRemoved);
+				
+				plaintext.write(chonk, 0, chonk.length);
 			}
 		} catch (IOException ex) {
 			

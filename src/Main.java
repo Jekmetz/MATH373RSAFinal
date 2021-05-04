@@ -23,9 +23,7 @@ public class Main {
 		printAuthorInfo(out);
 		printHelp(out);
 		
-		/*TODO: REMOVE BELOW PEOPLE... TESTING PURPOSES ONLY*/
-		people.put("Alice", new Person("Alice"));
-		people.put("Bob", new Person("Bob"));
+		
 		/*************/
 		while(!exit)	// while we don't want to exit...
 		{
@@ -89,14 +87,11 @@ public class Main {
 			"(e)xit       - Exit program\n\n"
 		);
 	}
-	
-	private static void notYetImplemented() { System.out.printf("This feature is not yet implemented\n\n");};
-	
-	
+
 	// Commands - all functions should take in a scanner
 	/**
 	 * Command handler for genKey 
-	 * @author 
+	 * @author Drey Newland
 	 * @param scan - Input stream scanner
 	 * @param out - Output stream to write to
 	 */
@@ -109,7 +104,22 @@ public class Main {
 		 * Display "<name> : (private, public) -> (<person.getPriv()>,<person.getPub()>)
 		 * name -> Person
 		 */
-		notYetImplemented();
+		String enteredName = null;
+		Person newName;
+		
+		out.printf("Please enter a name.\n");
+		enteredName = scan.nextLine();
+		
+		PrivKey newPrivKey = new PrivKey();
+		people.put(enteredName, new Person(newPrivKey, enteredName));
+		newName = people.get(enteredName);
+		
+		out.printf("Generated new person:\n");
+		out.printf("%s : (Private, Public) - > (%s, %s)\n", enteredName, newPrivKey, newName.getPubKey());
+		
+		
+		//people.put("Alice", new Person("Alice"));
+		//people.put("Bob", new Person("Bob"));
 	}
 	
 	/**
@@ -153,7 +163,7 @@ public class Main {
 		sender = people.get(peopleList.get(getInteger(scan, out, 0, peopleList.size() - 1)));
 		out.printf("%s is the sender\n\n", sender.getName());
 		
-		// Prompt user for message reciever
+		// Prompt user for message receiver
 		listPeople(out, peopleList);
 		out.printf("Please input the number corresponding to the recieving person\n");
 		receiver = people.get(peopleList.get(getInteger(scan, out, 0, peopleList.size() - 1)));
@@ -188,7 +198,7 @@ public class Main {
 	
 	/**
 	 * Command handler for viewKeys
-	 * @author 
+	 * @author Jay Kmetz
 	 * @param scan - Input stream scanner
 	 * @param out - Output stream to write to
 	 */
@@ -237,7 +247,7 @@ public class Main {
 		// Add headers if not indexing
 		if(!index)
 		{
-			String header = String.format("%-" + maxPLen + "s -> %s", "Person", "(priv-key, pub-key)");
+			String header = String.format("%-" + maxPLen + "s -> %s", "Person", "(pub-key)");
 			out.printf("%s\n%s\n", header, "-".repeat(header.length()));
 		}
 		
