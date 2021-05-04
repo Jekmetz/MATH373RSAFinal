@@ -3,7 +3,6 @@ import java.util.Random;
 
 /**
  * Utility class for all static helper functions
- * @author jekme
  */
 public class Utils {
 	//Init vars
@@ -27,7 +26,7 @@ public class Utils {
 	
 	/**
 	 * Computes a^n (mod z) quickly
-	 * @author 
+	 * @author Jay Kmetz
 	 * 
 	 * @param a - base
 	 * @param n - exponent
@@ -36,8 +35,7 @@ public class Utils {
 	 */
 	public static BigInteger fastPow(BigInteger a, BigInteger n, BigInteger z)
 	{
-		//TODO: implement
-		return a.modPow(n, z);	// Please for the love of God don't keep this
+		return a.modPow(n, z);
 	}
 	
 	/**

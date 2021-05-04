@@ -82,13 +82,12 @@ public class Person {
 	
 	/**
 	 * Decrypts a BigInteger back into the original string using the name specified
-	 * @author 
+	 * @author Drey Newland
 	 * @param ciphertext - Ciphertext to decrypt
 	 * @return Decrypted ciphertext
 	 */
 	public String decrypt(byte[] ciphertext)
 	{	
-		// TODO: Implement decrypt
 		BigInteger n = this.pubKey.getN();
 		BigInteger d = this.privKey.getD();
 		int blockSize = Utils.BLOCK_SIZE;
@@ -99,30 +98,24 @@ public class Person {
 		byte[] chonk = null;
 		ByteArrayOutputStream plaintext = new ByteArrayOutputStream(outputLen);
 		
-		try {
-		
-			//for(int i = 0; i < numChonks; i++)
-				
+		try {	
 			while((buffer = ciphertextStream.readNBytes(Utils.BLOCK_SIZE)).length > 0)
 			{
 				//m=c^d(mod N)
 				chonk = (new BigInteger(1, buffer)).modPow(d, n).toByteArray();
-				numberToBeRemoved = (0xFF & chonk[1]); 
-				chonk[0] = 0x00;
-				chonk[1] = 0x00;
-				chonk = Utils.removeLeadingZeros(chonk);
-				chonk = Utils.removeTrailingZeros(chonk, numberToBeRemoved);
+				numberToBeRemoved = (0xFF & chonk[1]); 	// Get the number of padding bytes at the end to be removed
+				chonk[0] = 0x00;						// Set lpad to 0x00
+				chonk[1] = 0x00;						// Set rpad to 0x00
+				chonk = Utils.removeLeadingZeros(chonk);						// Remove leading zeros
+				chonk = Utils.removeTrailingZeros(chonk, numberToBeRemoved);	// Remove trailing zeros
 				
-				plaintext.write(chonk, 0, chonk.length);
+				plaintext.write(chonk, 0, chonk.length);	// Write it to the buffer
 			}
 		} catch (IOException ex) {
 			
 			System.out.printf("Error when decrypting '%s'. This should never happen! Check Person.encrypt()\n");
 			return null;
 		}
-		
-		
-		//6,13,0,0,0,0,message,0,0,0,0,0,0,0,0,0,0,0,0,0
 		
 		return Utils.bytesToString(plaintext.toByteArray());
 	}

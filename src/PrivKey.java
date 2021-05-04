@@ -19,8 +19,7 @@ public class PrivKey {
 	 */
 	private void generateKey()
 	{
-		/* TODO: Implement generateKey
-		 * Goal: make p*q exactly 512 bytes
+		/* Goal: make p*q exactly 512 bytes
 		 * Choose two distinct prime numbers p and q (The length of p + the length of q is 512 bytes.)
 		 * The length of p and the length of q should be above 240.
 		 * 	Solution: Get a random number p_len between 240 and 272. Generate a prime that is that many bytes long

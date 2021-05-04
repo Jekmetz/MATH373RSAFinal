@@ -16,6 +16,6 @@ public class PubKey {
 	@Override
 	public String toString()
 	{
-		return String.format("(N, e) = (%s, %s)",this.n.toString(), this.e.toString());
+		return String.format("(N, e) = (%s, %s)", Utils.bytesToHexString(this.n.toByteArray()), Utils.bytesToHexString(this.e.toByteArray()));
 	}
 }

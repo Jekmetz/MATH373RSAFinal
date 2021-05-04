@@ -97,8 +97,7 @@ public class Main {
 	 */
 	private static void genKey(Scanner scan, PrintStream out)
 	{
-		/* TODO: Implement genKey
-		 * Prompt user for name
+		/* Prompt user for name
 		 * Generate a new private key for them and put it into the privKeys map
 		 * Display "Generated new person: "
 		 * Display "<name> : (private, public) -> (<person.getPriv()>,<person.getPub()>)
@@ -115,11 +114,13 @@ public class Main {
 		newName = people.get(enteredName);
 		
 		out.printf("Generated new person:\n");
-		out.printf("%s : (Private, Public) - > (%s, %s)\n", enteredName, newPrivKey, newName.getPubKey());
-		
-		
-		//people.put("Alice", new Person("Alice"));
-		//people.put("Bob", new Person("Bob"));
+		out.printf(
+			"%s : (N, e, d) - > (%s, %s, %s)\n\n", 
+			enteredName, 
+			Utils.bytesToHexString(newName.getPubKey().getN().toByteArray()),
+			Utils.bytesToHexString(newName.getPubKey().getE().toByteArray()),
+			Utils.bytesToHexString(newPrivKey.getD().toByteArray())
+		);
 	}
 	
 	/**
@@ -130,8 +131,7 @@ public class Main {
 	 */
 	private static void send(Scanner scan, PrintStream out)
 	{
-		/* TODO: Implement send
-		 * This is the meat and potatoes
+		/* This is the meat and potatoes
 		 * Prompt user for message sender -----------------------------------------
 		 * Prompt user for message reciever ---------------------------------------
 		 * Show public key for reciever -------------------------------------------
@@ -182,7 +182,7 @@ public class Main {
 		msg = scan.nextLine();
 		
 		// Encrypting
-		out.printf("Encrypting '%s' with %s's public key: %s\n", msg, sender.getName(), sender.getPubKey());
+		out.printf("Encrypting message with %s's public key...\n\n", receiver.getName());
 		ciphertext = sender.encrypt(receiver.getPubKey(), msg);
 		
 		out.printf("Encrypted Message (in hex):\n%s\n\n", Utils.bytesToHexString(ciphertext));
@@ -191,7 +191,7 @@ public class Main {
 		out.printf("%s is recieving message\n\n", receiver.getName());
 		
 		//Decrypting
-		out.printf("Decrypting message with %s's public key and their secret d\n", receiver.getName());
+		out.printf("Decrypting message with %s's public key and their secret d...\n\n", receiver.getName());
 		decrypted = receiver.decrypt(ciphertext);
 		out.printf("Decrypted message:\n%s\n\n", decrypted);
 	}
@@ -259,7 +259,7 @@ public class Main {
 			else // If we do not want to index it...
 			{
 				p = people.get(peopleList.get(i));
-				out.printf("%-" + maxPLen + "s -> (N, e) = (%s, %s)\n", peopleList.get(i), p.getPubKey().getN(), p.getPubKey().getE());
+				out.printf("%-" + maxPLen + "s -> %s\n", peopleList.get(i), p.getPubKey().toString());
 			}
 		out.println();
 
